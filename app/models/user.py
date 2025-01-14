@@ -1,5 +1,7 @@
+from sqlalchemy.schema import CreateTable
+
 from app.backend.db import Base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 
