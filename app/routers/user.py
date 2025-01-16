@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.backend.db_depends import get_db
 # Аннотации, Модели БД и Pydantic.
 from typing import Annotated
-from app.models import User
+from app.models import User, Task
 from app.schemas import CreateUser, UpdateUser
 from sqlalchemy import insert, select, update, delete  # Функции работы с записями.
 from slugify import slugify  # Функция создания slug-строки
@@ -28,6 +28,15 @@ async def user_by_id(user_id: int, db: DbSession):
         return user
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+
+@router.get("/user_id/tasks")
+async def tasks_by_user_id(user_id: int, db: DbSession):
+    tasks = db.scalars(select(Task).where(Task.user_id == user_id)).all()
+    if tasks:
+        return tasks
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tasks not found")
 
 
 @router.post("/create")
@@ -58,6 +67,7 @@ async def update_user(db: DbSession, update_user: UpdateUser, user_id: int):
 async def delete_user(db: DbSession, user_id: int):
     user = db.scalar(select(User).where(User.id == user_id))
     if user:
+        db.execute(delete(Task).where(Task.user_id == user_id))
         db.execute(delete(User).where(User.id == user_id))
         db.commit()
         return {'status_code': status.HTTP_200_OK, 'transaction': 'User delete is successful!'}
